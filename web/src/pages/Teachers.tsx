@@ -14,6 +14,7 @@ export default function Teachers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingTeacherId, setEditingTeacherId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   
   const [formData, setFormData] = useState({ email: '', password: '', first_name: '', last_name: '' });
   const [editData, setEditData] = useState({ first_name: '', last_name: '' });
@@ -61,7 +62,13 @@ export default function Teachers() {
         
         <div className="input-group" style={{ marginBottom: '24px', position: 'relative' }}>
           <Search size={18} style={{ position: 'absolute', top: '10px', left: '10px', color: 'var(--text-secondary)' }} />
-          <input type="text" placeholder="Search teachers..." style={{ paddingLeft: '36px' }} />
+          <input 
+            type="text" 
+            placeholder="Search teachers..." 
+            style={{ paddingLeft: '36px' }} 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
 
         <div style={{ overflowX: 'auto' }}>
@@ -82,7 +89,11 @@ export default function Teachers() {
                   </td>
                 </tr>
               ) : (
-                teachers.map((teacher) => (
+                teachers.filter(teacher => 
+                  teacher.first_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  teacher.last_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  teacher.email.toLowerCase().includes(searchQuery.toLowerCase())
+                ).map((teacher) => (
                   <tr key={teacher.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     <td style={{ padding: '12px 8px' }}>{teacher.first_name} {teacher.last_name}</td>
                     <td style={{ padding: '12px 8px', color: 'var(--text-secondary)' }}>{teacher.email}</td>

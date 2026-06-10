@@ -14,6 +14,7 @@ export default function Students() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [formData, setFormData] = useState({ email: '', password: '', first_name: '', last_name: '', roll_number: '' });
   const [editData, setEditData] = useState({ first_name: '', last_name: '', roll_number: '' });
@@ -61,7 +62,13 @@ export default function Students() {
         
         <div className="input-group" style={{ marginBottom: '24px', position: 'relative' }}>
           <Search size={18} style={{ position: 'absolute', top: '10px', left: '10px', color: 'var(--text-secondary)' }} />
-          <input type="text" placeholder="Search students..." style={{ paddingLeft: '36px' }} />
+          <input 
+            type="text" 
+            placeholder="Search students..." 
+            style={{ paddingLeft: '36px' }} 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
 
         <div style={{ overflowX: 'auto' }}>
@@ -83,7 +90,12 @@ export default function Students() {
                   </td>
                 </tr>
               ) : (
-                students.map((student) => (
+                students.filter(student => 
+                  student.first_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  student.last_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  (student.roll_number && student.roll_number.toLowerCase().includes(searchQuery.toLowerCase()))
+                ).map((student) => (
                   <tr key={student.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     <td style={{ padding: '12px 8px' }}>{student.roll_number || '-'}</td>
                     <td style={{ padding: '12px 8px' }}>{student.first_name} {student.last_name}</td>
