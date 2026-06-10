@@ -45,7 +45,7 @@ export default function Dashboard() {
                     <span style={{ color: 'var(--primary-color)', marginLeft: '4px' }}>{activity.section?.course?.code}</span>
                   </div>
                   <div style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
-                    {new Date(activity.created_at).toLocaleDateString()}
+                    {activity.created_at ? new Date(activity.created_at).toLocaleDateString() : ''}
                   </div>
                 </div>
               ))

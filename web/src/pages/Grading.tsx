@@ -39,8 +39,8 @@ function SubmissionsTable({ assignmentId, sectionId }: { assignmentId: string, s
               <td style={{ padding: '8px' }}>
                 <input 
                   type="number" 
-                  defaultValue={getScore(env.student_id)} 
-                  onBlur={(e) => handleScoreChange(env.student_id, e.target.value)}
+                  defaultValue={getScore(env.student_id || '')} 
+                  onBlur={(e) => handleScoreChange(env.student_id || '', e.target.value)}
                   style={{ width: '80px', padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}
                 />
               </td>

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useCourses, useCreateCourse, useSections, useCreateSection } from '../hooks/useCourses';
 import { useProfiles } from '../hooks/useProfiles';
 import Modal from '../components/ui/Modal';
-import { Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Courses() {
