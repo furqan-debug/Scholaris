@@ -28,7 +28,15 @@ export function useCreateProfile() {
       const { data, error } = await supabase.functions.invoke('create-user', {
         body: newProfile,
       });
-      if (error) throw error;
+      if (error) {
+        if (error.context && typeof error.context.json === 'function') {
+          const errData = await error.context.json().catch(() => null);
+          if (errData && errData.error) {
+            throw new Error(errData.error);
+          }
+        }
+        throw new Error(error.message || 'Failed to invoke edge function');
+      }
       return data;
     },
     onSuccess: (_, variables) => {
