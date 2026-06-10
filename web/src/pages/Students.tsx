@@ -2,8 +2,11 @@ import { useProfiles, useCreateProfile, useUpdateProfile } from '../hooks/usePro
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '../components/ui/Modal';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Students() {
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
   const { data: students, isLoading, error } = useProfiles('student');
   const createProfile = useCreateProfile();
   const updateProfile = useUpdateProfile();
@@ -51,7 +54,9 @@ export default function Students() {
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h3>Students</h3>
-          <button className="btn-primary" style={{ width: 'auto' }} onClick={() => setIsModalOpen(true)}>Add Student</button>
+          {isAdmin && (
+            <button className="btn-primary" style={{ width: 'auto' }} onClick={() => setIsModalOpen(true)}>Add Student</button>
+          )}
         </div>
         
         <div className="input-group" style={{ marginBottom: '24px', position: 'relative' }}>
@@ -67,7 +72,7 @@ export default function Students() {
                 <th style={{ padding: '12px 8px', fontWeight: 500 }}>Name</th>
                 <th style={{ padding: '12px 8px', fontWeight: 500 }}>Email</th>
                 <th style={{ padding: '12px 8px', fontWeight: 500 }}>Joined</th>
-                <th style={{ padding: '12px 8px', fontWeight: 500, textAlign: 'right' }}>Actions</th>
+                {isAdmin && <th style={{ padding: '12px 8px', fontWeight: 500, textAlign: 'right' }}>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -84,9 +89,11 @@ export default function Students() {
                     <td style={{ padding: '12px 8px' }}>{student.first_name} {student.last_name}</td>
                     <td style={{ padding: '12px 8px', color: 'var(--text-secondary)' }}>{student.email}</td>
                     <td style={{ padding: '12px 8px', color: 'var(--text-secondary)' }}>{new Date(student.created_at).toLocaleDateString()}</td>
-                    <td style={{ padding: '12px 8px', textAlign: 'right' }}>
-                      <button onClick={() => handleOpenEdit(student)} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer' }}>Edit</button>
-                    </td>
+                    {isAdmin && (
+                      <td style={{ padding: '12px 8px', textAlign: 'right' }}>
+                        <button onClick={() => handleOpenEdit(student)} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer' }}>Edit</button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
