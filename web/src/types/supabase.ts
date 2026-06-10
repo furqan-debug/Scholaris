@@ -282,6 +282,8 @@ export type Database = {
     }
     Functions: {
       calculate_student_gpa: { Args: { p_student_id: string }; Returns: number }
+      enroll_student: { Args: { target_section_id: string; target_student_id: string }; Returns: void }
+      delete_user_by_admin: { Args: { target_user_id: string }; Returns: void }
       get_user_role: {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
