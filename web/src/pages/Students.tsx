@@ -1,4 +1,4 @@
-import { useProfiles, useCreateProfile, useUpdateProfile } from '../hooks/useProfiles';
+import { useProfiles, useCreateProfile, useUpdateProfile, useDeleteProfile } from '../hooks/useProfiles';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '../components/ui/Modal';
@@ -10,6 +10,7 @@ export default function Students() {
   const { data: students, isLoading, error } = useProfiles('student');
   const createProfile = useCreateProfile();
   const updateProfile = useUpdateProfile();
+  const deleteProfile = useDeleteProfile();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -44,6 +45,16 @@ export default function Students() {
       setIsEditModalOpen(false);
     } catch (err) {
       alert('Failed to update student: ' + (err as Error).message);
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to completely delete ${name}? This action cannot be undone.`)) {
+      try {
+        await deleteProfile.mutateAsync({ id });
+      } catch (err) {
+        alert('Failed to delete student: ' + (err as Error).message);
+      }
     }
   };
 
@@ -103,7 +114,10 @@ export default function Students() {
                     <td style={{ padding: '12px 8px', color: 'var(--text-secondary)' }}>{new Date(student.created_at).toLocaleDateString()}</td>
                     {isAdmin && (
                       <td style={{ padding: '12px 8px', textAlign: 'right' }}>
-                        <button onClick={() => handleOpenEdit(student)} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer' }}>Edit</button>
+                        <button onClick={() => handleOpenEdit(student)} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', marginRight: '12px' }}>Edit</button>
+                        <button onClick={() => handleDelete(student.id, `${student.first_name} ${student.last_name}`)} style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer' }} disabled={deleteProfile.isPending}>
+                          {deleteProfile.isPending ? '...' : 'Delete'}
+                        </button>
                       </td>
                     )}
                   </tr>
