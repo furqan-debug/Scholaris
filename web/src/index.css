@@ -104,21 +104,12 @@ a:hover {
   border-bottom: 1px solid transparent;
 }
 
-.logo-box {
-  width: 24px;
-  height: 24px;
-  background: linear-gradient(135deg, #a855f7, var(--primary-color));
+.logo-image {
+  width: 28px;
+  height: 28px;
   border-radius: 6px;
+  object-fit: contain;
   box-shadow: var(--shadow-glow);
-  position: relative;
-}
-
-.logo-box::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%);
-  border-radius: 6px;
 }
 
 .sidebar-header h2 {

@@ -29,7 +29,7 @@ export default function Layout() {
     <div className="layout">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <div className="logo-box"></div>
+          <img src="/logo.png" alt="Scholaris Logo" className="logo-image" />
           <h2>Scholaris</h2>
         </div>
         <nav className="sidebar-nav">
