@@ -13,15 +13,16 @@ export default function Transcript() {
   const enrollStudent = useEnrollStudent();
 
   const [selectedSection, setSelectedSection] = useState('');
+  const [enrollError, setEnrollError] = useState('');
 
   const handleEnroll = async () => {
     if (!selectedSection) return;
+    setEnrollError('');
     try {
       await enrollStudent.mutateAsync({ section_id: selectedSection, student_id: studentId });
-      alert('Successfully enrolled!');
       setSelectedSection('');
     } catch (err: any) {
-      alert('Enrollment failed: ' + err.message);
+      setEnrollError(err.message || 'Enrollment failed due to an unknown error.');
     }
   };
 
@@ -40,12 +41,17 @@ export default function Transcript() {
         <div className="card">
           <h3>Course Registration</h3>
           <div style={{ marginTop: '16px', display: 'flex', gap: '12px', flexDirection: 'column' }}>
-            <select value={selectedSection} onChange={e => setSelectedSection(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}>
+            <select value={selectedSection} onChange={e => { setSelectedSection(e.target.value); setEnrollError(''); }} style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'var(--text-primary)' }}>
               <option value="">Select a Section to enroll</option>
               {sections?.filter(s => !enrollments?.some(e => e.section_id === s.id)).map(s => (
                 <option key={s.id} value={s.id}>{s.course?.code} - {s.course?.name} ({s.semester} | {s.schedule})</option>
               ))}
             </select>
+            {enrollError && (
+              <div style={{ backgroundColor: 'rgba(229, 72, 77, 0.1)', color: 'var(--danger-color)', padding: '12px', borderRadius: '6px', fontSize: '13px' }}>
+                {enrollError}
+              </div>
+            )}
             <button className="btn-primary" onClick={handleEnroll} disabled={!selectedSection || enrollStudent.isPending}>
               {enrollStudent.isPending ? 'Processing...' : 'Register'}
             </button>

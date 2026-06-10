@@ -3,6 +3,7 @@ import { useSections } from '../hooks/useCourses';
 import { useSectionEnrollments } from '../hooks/useEnrollments';
 import { useAssignments, useCreateAssignment, useSubmissions, useSubmitScore } from '../hooks/useAssignments';
 import Modal from '../components/ui/Modal';
+import { useAuth } from '../contexts/AuthContext';
 
 function SubmissionsTable({ assignmentId, sectionId }: { assignmentId: string, sectionId: string }) {
   const { data: enrollments } = useSectionEnrollments(sectionId);
@@ -52,8 +53,12 @@ function SubmissionsTable({ assignmentId, sectionId }: { assignmentId: string, s
 }
 
 export default function Grading() {
+  const { user, profile } = useAuth();
   const [selectedSection, setSelectedSection] = useState('');
-  const { data: sections } = useSections();
+  const { data: allSections } = useSections();
+  
+  const sections = allSections?.filter(s => profile?.role === 'admin' || s.teacher_id === user?.id);
+
   const { data: assignments } = useAssignments(selectedSection);
   const createAssignment = useCreateAssignment();
 

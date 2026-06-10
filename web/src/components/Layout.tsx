@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { LayoutDashboard, Users, BookOpen, CalendarCheck, LogOut, UserCircle, GraduationCap, ClipboardCheck } from 'lucide-react';
 
 export default function Layout() {
-  const { signOut, user } = useAuth();
+  const { signOut, user, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -12,14 +12,18 @@ export default function Layout() {
     navigate('/login');
   };
 
-  const navItems = [
-    { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/students', label: 'Students', icon: Users },
-    { path: '/teachers', label: 'Teachers', icon: UserCircle },
-    { path: '/courses', label: 'Course Catalog', icon: BookOpen },
-    { path: '/transcript', label: 'Transcript & Enroll', icon: GraduationCap },
-    { path: '/grading', label: 'Grading Portal', icon: ClipboardCheck },
+  const allNavItems = [
+    { path: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'teacher', 'student'] },
+    { path: '/students', label: 'Students', icon: Users, roles: ['admin', 'teacher'] },
+    { path: '/teachers', label: 'Teachers', icon: UserCircle, roles: ['admin'] },
+    { path: '/courses', label: 'Course Catalog', icon: BookOpen, roles: ['admin', 'teacher', 'student'] },
+    { path: '/transcript', label: 'Transcript & Enroll', icon: GraduationCap, roles: ['student'] },
+    { path: '/grading', label: 'Grading Portal', icon: ClipboardCheck, roles: ['teacher', 'admin'] },
   ];
+
+  const role = profile?.role || 'student';
+  const navItems = allNavItems.filter(item => item.roles.includes(role));
+
 
   return (
     <div className="layout">
