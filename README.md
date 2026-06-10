@@ -51,7 +51,7 @@ The platform is strictly divided into three primary user roles. Roles are stored
 
 ---
 
-## 🗄️ Database Schema & Advanced Concepts
+## Database Schema & Advanced Concepts
 
 Since this is an advanced database management project, business logic is explicitly pushed directly down to the database layer to guarantee maximum data integrity, concurrency control, and security.
 
@@ -64,18 +64,18 @@ Since this is an advanced database management project, business logic is explici
 6. **`assignments`**: Teacher-defined tasks with `weight_percentage` impact metrics.
 7. **`submissions`**: Student scores with foreign keys to `assignments` and `profiles`.
 
-### ⚡ Automated Database Triggers (Active DBMS)
+### Automated Database Triggers (Active DBMS)
 We utilize PostgreSQL triggers to automatically enforce academic constraints and perform complex cascading calculations:
 - **`check_prerequisites` (`BEFORE INSERT`)**: Analyzes the student's transcript and rejects section enrollments if prerequisite courses aren't completed.
 - **`update_enrollment_grade` (`AFTER INSERT/UPDATE`)**: Recalculates the student's weighted percentage across all assignments, dynamically converting it to a standard Letter Grade (A, B, C, F), and updating the `enrollments` table without any backend API intervention.
 - **`update_student_gpa` (`AFTER UPDATE`)**: Automatically recalculates the global cumulative GPA based on course credits whenever a letter grade changes.
 
-### 🛡️ ACID-Compliant Transactions & Concurrency Control
+### ACID-Compliant Transactions & Concurrency Control
 To prevent race conditions during high-traffic course registration periods, the system does not use simple REST API calls for enrollment. Instead, it utilizes a custom Stored Procedure (RPC) named `enroll_student`:
 - **Isolation (`SELECT ... FOR UPDATE`)**: The transaction applies a strict Row-Level Lock on the `sections` table. If 100 students click "Register" at the exact same millisecond, the lock forces PostgreSQL to queue the transactions sequentially.
 - **Atomicity & Consistency**: After locking the row, the function counts active enrollments and explicitly checks the `capacity` constraint. If the class is full, the transaction forcefully rolls back (`RAISE EXCEPTION`), completely preventing over-enrollment data anomalies.
 
-### 🔒 Secure Deletion (Stored Procedures)
+### Secure Deletion (Stored Procedures)
 To bypass frontend security limitations without exposing the database Service Key, the system includes a `SECURITY DEFINER` Postgres function (`delete_user_by_admin`). When an Admin deletes a user, the function first strictly verifies the caller's role, and then executes a secure deletion on `auth.users`, which seamlessly triggers a cascade delete across their entire academic record.
 
 ---
@@ -118,7 +118,7 @@ This application is configured for seamless deployment on **Vercel**:
 
 ---
 
-## 🚀 Data Generation & Seeding
+## Data Generation & Seeding
 
 For demonstration purposes (like a DBMS Final Lab Project Demo), the project includes a sophisticated synthetic data generation script.
 
