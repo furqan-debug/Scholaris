@@ -6,7 +6,7 @@
 
 ---
 
-## 🏗️ Architecture & Technology Stack
+## Architecture & Technology Stack
 
 - **Frontend Framework**: React 18 with TypeScript
 - **Build Tool**: Vite (Lightning fast HMR & optimized builds)
@@ -20,7 +20,7 @@
 
 ---
 
-## 👥 Role-Based Access Control (RBAC)
+## Role-Based Access Control (RBAC)
 
 The platform is strictly divided into three primary user roles. Roles are stored in the database and enforced through strict PostgreSQL **Row-Level Security (RLS)** policies.
 
@@ -51,7 +51,7 @@ The platform is strictly divided into three primary user roles. Roles are stored
 
 ---
 
-## 🗄️ Database Schema & Automation
+## Database Schema & Automation
 
 The application uses a heavily automated PostgreSQL database. Business logic is pushed directly to the database layer using Triggers and Functions to guarantee data integrity regardless of frontend behavior.
 
@@ -73,7 +73,7 @@ Scholaris relies on PostgreSQL triggers to prevent illegal actions and automate 
 
 ---
 
-## 🔒 Security Model
+## Security Model
 
 ### Row-Level Security (RLS)
 The database is locked down by default. No data can be accessed without satisfying a policy:
@@ -87,7 +87,7 @@ When an Admin creates a new Teacher/Student, the frontend calls the Edge Functio
 
 ---
 
-## 🚀 Setup & Development
+## Setup & Development
 
 ### 1. Local Setup
 1. Clone the repository.
@@ -111,6 +111,6 @@ This application is configured for seamless deployment on **Vercel**:
 
 ---
 
-## 🧪 Quality Assurance (QA)
+## Quality Assurance (QA)
 
 The project includes an End-to-End QA script (`qa.mjs`) used during development to verify database constraints. It uses the Supabase JS client to simulate concurrent Admin, Teacher, and Student requests, guaranteeing that RLS, Capacity Checks, and Automated Grading Triggers perform flawlessly in production environments.
