@@ -14,68 +14,94 @@ export type Database = {
   }
   public: {
     Tables: {
-      attendance: {
+      assignments: {
         Row: {
-          class_id: string | null
-          created_at: string
-          date: string
+          created_at: string | null
           id: string
-          notes: string | null
-          status: string
-          student_id: string | null
+          max_score: number
+          section_id: string | null
+          title: string
+          weight_percentage: number
         }
         Insert: {
-          class_id?: string | null
-          created_at?: string
-          date?: string
+          created_at?: string | null
           id?: string
-          notes?: string | null
-          status: string
-          student_id?: string | null
+          max_score: number
+          section_id?: string | null
+          title: string
+          weight_percentage: number
         }
         Update: {
-          class_id?: string | null
-          created_at?: string
-          date?: string
+          created_at?: string | null
           id?: string
-          notes?: string | null
-          status?: string
-          student_id?: string | null
+          max_score?: number
+          section_id?: string | null
+          title?: string
+          weight_percentage?: number
         }
         Relationships: [
           {
-            foreignKeyName: "attendance_class_id_fkey"
-            columns: ["class_id"]
+            foreignKeyName: "assignments_section_id_fkey"
+            columns: ["section_id"]
             isOneToOne: false
-            referencedRelation: "classes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "attendance_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "sections"
             referencedColumns: ["id"]
           },
         ]
       }
-      classes: {
+      course_prerequisites: {
         Row: {
-          created_at: string
+          course_id: string
+          prerequisite_id: string
+        }
+        Insert: {
+          course_id: string
+          prerequisite_id: string
+        }
+        Update: {
+          course_id?: string
+          prerequisite_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_prerequisites_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_prerequisites_prerequisite_id_fkey"
+            columns: ["prerequisite_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          code: string
+          created_at: string | null
+          credits: number
           description: string | null
           id: string
           name: string
           teacher_id: string | null
         }
         Insert: {
-          created_at?: string
+          code: string
+          created_at?: string | null
+          credits?: number
           description?: string | null
           id?: string
           name: string
           teacher_id?: string | null
         }
         Update: {
-          created_at?: string
+          code?: string
+          created_at?: string | null
+          credits?: number
           description?: string | null
           id?: string
           name?: string
@@ -83,7 +109,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "classes_teacher_id_fkey"
+            foreignKeyName: "courses_teacher_id_fkey"
             columns: ["teacher_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -93,29 +119,38 @@ export type Database = {
       }
       enrollments: {
         Row: {
-          class_id: string | null
-          created_at: string
+          created_at: string | null
+          grade: Database["public"]["Enums"]["grade_letter"] | null
+          grade_point: number | null
           id: string
+          section_id: string | null
+          status: Database["public"]["Enums"]["enrollment_status"] | null
           student_id: string | null
         }
         Insert: {
-          class_id?: string | null
-          created_at?: string
+          created_at?: string | null
+          grade?: Database["public"]["Enums"]["grade_letter"] | null
+          grade_point?: number | null
           id?: string
+          section_id?: string | null
+          status?: Database["public"]["Enums"]["enrollment_status"] | null
           student_id?: string | null
         }
         Update: {
-          class_id?: string | null
-          created_at?: string
+          created_at?: string | null
+          grade?: Database["public"]["Enums"]["grade_letter"] | null
+          grade_point?: number | null
           id?: string
+          section_id?: string | null
+          status?: Database["public"]["Enums"]["enrollment_status"] | null
           student_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "enrollments_class_id_fkey"
-            columns: ["class_id"]
+            foreignKeyName: "enrollments_section_id_fkey"
+            columns: ["section_id"]
             isOneToOne: false
-            referencedRelation: "classes"
+            referencedRelation: "sections"
             referencedColumns: ["id"]
           },
           {
@@ -157,14 +192,114 @@ export type Database = {
         }
         Relationships: []
       }
+      sections: {
+        Row: {
+          capacity: number
+          course_id: string | null
+          created_at: string | null
+          id: string
+          schedule: string
+          semester: string
+          teacher_id: string | null
+        }
+        Insert: {
+          capacity?: number
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          schedule: string
+          semester: string
+          teacher_id?: string | null
+        }
+        Update: {
+          capacity?: number
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          schedule?: string
+          semester?: string
+          teacher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sections_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sections_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submissions: {
+        Row: {
+          assignment_id: string | null
+          created_at: string | null
+          id: string
+          score: number
+          student_id: string | null
+        }
+        Insert: {
+          assignment_id?: string | null
+          created_at?: string | null
+          id?: string
+          score: number
+          student_id?: string | null
+        }
+        Update: {
+          assignment_id?: string | null
+          created_at?: string | null
+          id?: string
+          score?: number
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_student_gpa: { Args: { p_student_id: string }; Returns: number }
+      get_user_role: {
+        Args: never
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
     }
     Enums: {
+      enrollment_status: "enrolled" | "completed" | "dropped"
+      grade_letter:
+        | "A+"
+        | "A"
+        | "A-"
+        | "B+"
+        | "B"
+        | "C+"
+        | "C"
+        | "D"
+        | "F"
+        | "None"
       user_role: "admin" | "teacher" | "student"
     }
     CompositeTypes: {
@@ -293,6 +428,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      enrollment_status: ["enrolled", "completed", "dropped"],
+      grade_letter: ["A+", "A", "A-", "B+", "B", "C+", "C", "D", "F", "None"],
       user_role: ["admin", "teacher", "student"],
     },
   },

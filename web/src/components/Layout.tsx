@@ -1,6 +1,6 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LayoutDashboard, Users, BookOpen, CalendarCheck, LogOut, UserCircle } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, CalendarCheck, LogOut, UserCircle, GraduationCap, ClipboardCheck } from 'lucide-react';
 
 export default function Layout() {
   const { signOut, user } = useAuth();
@@ -16,8 +16,9 @@ export default function Layout() {
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/students', label: 'Students', icon: Users },
     { path: '/teachers', label: 'Teachers', icon: UserCircle },
-    { path: '/classes', label: 'Classes', icon: BookOpen },
-    { path: '/attendance', label: 'Attendance', icon: CalendarCheck },
+    { path: '/courses', label: 'Course Catalog', icon: BookOpen },
+    { path: '/transcript', label: 'Transcript & Enroll', icon: GraduationCap },
+    { path: '/grading', label: 'Grading Portal', icon: ClipboardCheck },
   ];
 
   return (

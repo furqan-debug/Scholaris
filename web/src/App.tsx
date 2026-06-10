@@ -6,8 +6,9 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Students from './pages/Students';
 import Teachers from './pages/Teachers';
-import Classes from './pages/Classes';
-import Attendance from './pages/Attendance';
+import Courses from './pages/Courses';
+import Transcript from './pages/Transcript';
+import Grading from './pages/Grading';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
@@ -26,8 +27,9 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="students" element={<Students />} />
             <Route path="teachers" element={<Teachers />} />
-            <Route path="classes" element={<Classes />} />
-            <Route path="attendance" element={<Attendance />} />
+            <Route path="courses" element={<Courses />} />
+            <Route path="transcript" element={<Transcript />} />
+            <Route path="grading" element={<Grading />} />
           </Route>
         </Routes>
       </BrowserRouter>

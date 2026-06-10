@@ -1,10 +1,10 @@
 import { useProfiles } from '../hooks/useProfiles';
-import { useClasses } from '../hooks/useClasses';
+import { useCourses } from '../hooks/useCourses';
 
 export default function Dashboard() {
   const { data: students, isLoading: loadingStudents } = useProfiles('student');
   const { data: teachers, isLoading: loadingTeachers } = useProfiles('teacher');
-  const { data: classes, isLoading: loadingClasses } = useClasses();
+  const { data: courses, isLoading: loadingCourses } = useCourses();
 
   return (
     <div className="page">
@@ -22,9 +22,9 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="card">
-          <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>Active Classes</h3>
+          <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>Active Courses</h3>
           <div style={{ fontSize: '2rem', fontWeight: 700 }}>
-            {loadingClasses ? '-' : classes?.length || 0}
+            {loadingCourses ? '-' : courses?.length || 0}
           </div>
         </div>
       </div>
