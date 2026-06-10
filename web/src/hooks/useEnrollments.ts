@@ -42,9 +42,12 @@ export function useEnrollStudent() {
 
   return useMutation({
     mutationFn: async (enrollment: { section_id: string; student_id: string; }) => {
-      const { data, error } = await supabase.from('enrollments').insert([enrollment]).select().single();
-      if (error) throw error;
-      return data;
+      const { error } = await supabase.rpc('enroll_student', { 
+        target_section_id: enrollment.section_id, 
+        target_student_id: enrollment.student_id 
+      });
+      if (error) throw new Error(error.message);
+      return enrollment;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['enrollments', variables.student_id] });
