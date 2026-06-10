@@ -1,4 +1,4 @@
-import { useProfiles, useCreateProfile } from '../hooks/useProfiles';
+import { useProfiles, useCreateProfile, useUpdateProfile } from '../hooks/useProfiles';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '../components/ui/Modal';
@@ -6,9 +6,20 @@ import Modal from '../components/ui/Modal';
 export default function Teachers() {
   const { data: teachers, isLoading, error } = useProfiles('teacher');
   const createProfile = useCreateProfile();
+  const updateProfile = useUpdateProfile();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTeacherId, setEditingTeacherId] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState({ email: '', password: '', first_name: '', last_name: '' });
+  const [editData, setEditData] = useState({ first_name: '', last_name: '' });
+
+  const handleOpenEdit = (teacher: any) => {
+    setEditingTeacherId(teacher.id);
+    setEditData({ first_name: teacher.first_name, last_name: teacher.last_name });
+    setIsEditModalOpen(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,6 +29,17 @@ export default function Teachers() {
       setFormData({ email: '', password: '', first_name: '', last_name: '' });
     } catch (err) {
       alert('Failed to create teacher: ' + (err as Error).message);
+    }
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTeacherId) return;
+    try {
+      await updateProfile.mutateAsync({ id: editingTeacherId, updates: editData });
+      setIsEditModalOpen(false);
+    } catch (err) {
+      alert('Failed to update teacher: ' + (err as Error).message);
     }
   };
 
@@ -61,7 +83,7 @@ export default function Teachers() {
                     <td style={{ padding: '12px 8px', color: 'var(--text-secondary)' }}>{teacher.email}</td>
                     <td style={{ padding: '12px 8px', color: 'var(--text-secondary)' }}>{new Date(teacher.created_at).toLocaleDateString()}</td>
                     <td style={{ padding: '12px 8px', textAlign: 'right' }}>
-                      <button style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer' }}>Edit</button>
+                      <button onClick={() => handleOpenEdit(teacher)} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer' }}>Edit</button>
                     </td>
                   </tr>
                 ))
@@ -91,6 +113,22 @@ export default function Teachers() {
           </div>
           <button type="submit" className="btn-primary" disabled={createProfile.isPending}>
             {createProfile.isPending ? 'Saving...' : 'Save Teacher'}
+          </button>
+        </form>
+      </Modal>
+
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Teacher">
+        <form onSubmit={handleEditSubmit}>
+          <div className="input-group">
+            <label>First Name</label>
+            <input required value={editData.first_name} onChange={e => setEditData({...editData, first_name: e.target.value})} />
+          </div>
+          <div className="input-group">
+            <label>Last Name</label>
+            <input required value={editData.last_name} onChange={e => setEditData({...editData, last_name: e.target.value})} />
+          </div>
+          <button type="submit" className="btn-primary" disabled={updateProfile.isPending}>
+            {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
           </button>
         </form>
       </Modal>

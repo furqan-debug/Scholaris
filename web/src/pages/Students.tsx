@@ -1,4 +1,4 @@
-import { useProfiles, useCreateProfile } from '../hooks/useProfiles';
+import { useProfiles, useCreateProfile, useUpdateProfile } from '../hooks/useProfiles';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '../components/ui/Modal';
@@ -6,9 +6,20 @@ import Modal from '../components/ui/Modal';
 export default function Students() {
   const { data: students, isLoading, error } = useProfiles('student');
   const createProfile = useCreateProfile();
+  const updateProfile = useUpdateProfile();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({ email: '', password: '', first_name: '', last_name: '', roll_number: '' });
+  const [editData, setEditData] = useState({ first_name: '', last_name: '', roll_number: '' });
+
+  const handleOpenEdit = (student: any) => {
+    setEditingStudentId(student.id);
+    setEditData({ first_name: student.first_name, last_name: student.last_name, roll_number: student.roll_number || '' });
+    setIsEditModalOpen(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,6 +29,17 @@ export default function Students() {
       setFormData({ email: '', password: '', first_name: '', last_name: '', roll_number: '' });
     } catch (err) {
       alert('Failed to create student: ' + (err as Error).message);
+    }
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStudentId) return;
+    try {
+      await updateProfile.mutateAsync({ id: editingStudentId, updates: editData });
+      setIsEditModalOpen(false);
+    } catch (err) {
+      alert('Failed to update student: ' + (err as Error).message);
     }
   };
 
@@ -63,7 +85,7 @@ export default function Students() {
                     <td style={{ padding: '12px 8px', color: 'var(--text-secondary)' }}>{student.email}</td>
                     <td style={{ padding: '12px 8px', color: 'var(--text-secondary)' }}>{new Date(student.created_at).toLocaleDateString()}</td>
                     <td style={{ padding: '12px 8px', textAlign: 'right' }}>
-                      <button style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer' }}>Edit</button>
+                      <button onClick={() => handleOpenEdit(student)} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer' }}>Edit</button>
                     </td>
                   </tr>
                 ))
@@ -97,6 +119,26 @@ export default function Students() {
           </div>
           <button type="submit" className="btn-primary" disabled={createProfile.isPending}>
             {createProfile.isPending ? 'Saving...' : 'Save Student'}
+          </button>
+        </form>
+      </Modal>
+
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Student">
+        <form onSubmit={handleEditSubmit}>
+          <div className="input-group">
+            <label>Roll Number</label>
+            <input required value={editData.roll_number} onChange={e => setEditData({...editData, roll_number: e.target.value})} />
+          </div>
+          <div className="input-group">
+            <label>First Name</label>
+            <input required value={editData.first_name} onChange={e => setEditData({...editData, first_name: e.target.value})} />
+          </div>
+          <div className="input-group">
+            <label>Last Name</label>
+            <input required value={editData.last_name} onChange={e => setEditData({...editData, last_name: e.target.value})} />
+          </div>
+          <button type="submit" className="btn-primary" disabled={updateProfile.isPending}>
+            {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
           </button>
         </form>
       </Modal>
