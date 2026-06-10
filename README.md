@@ -51,25 +51,32 @@ The platform is strictly divided into three primary user roles. Roles are stored
 
 ---
 
-## Database Schema & Automation
+## 🗄️ Database Schema & Advanced Concepts
 
-The application uses a heavily automated PostgreSQL database. Business logic is pushed directly to the database layer using Triggers and Functions to guarantee data integrity regardless of frontend behavior.
+Since this is an advanced database management project, business logic is explicitly pushed directly down to the database layer to guarantee maximum data integrity, concurrency control, and security.
 
-### Core Tables
-1. **`profiles`**: Stores user information (First Name, Last Name, Role, cumulative GPA). Linked 1:1 with Supabase Auth users.
-2. **`courses`**: The master catalog of academic subjects (Code, Name, Credits).
-3. **`course_prerequisites`**: A junction table defining which courses must be completed before taking another.
-4. **`sections`**: Specific instances of a course offered in a given semester, assigned to a Teacher, with a defined max capacity.
-5. **`enrollments`**: Junction table tracking which students are in which sections, along with their final Letter Grade and Grade Points.
-6. **`assignments`**: Tasks/Exams created by teachers for specific sections. Includes a `weight_percentage` indicating its impact on the final grade.
-7. **`submissions`**: Student scores for specific assignments.
+### Core Tables (Entities)
+1. **`profiles`**: Stores user information (Role, Roll Number, cumulative GPA). Linked 1:1 with Supabase Auth (`auth.users`).
+2. **`courses`**: Master catalog of academic subjects (Code, Name, Credits).
+3. **`course_prerequisites`**: A junction table defining required course completion chains.
+4. **`sections`**: Instances of courses offered (includes maximum `capacity`, schedule, and teacher foreign keys).
+5. **`enrollments`**: Junction table tracking student section enrollments, storing final Letter Grades and Grade Points.
+6. **`assignments`**: Teacher-defined tasks with `weight_percentage` impact metrics.
+7. **`submissions`**: Student scores with foreign keys to `assignments` and `profiles`.
 
-### Database Triggers (Automated Logic)
-Scholaris relies on PostgreSQL triggers to prevent illegal actions and automate calculations:
-- **`check_prerequisites_before_enrollment`**: Fires `BEFORE INSERT` on `enrollments`. Checks if the student has a status of `completed` for all prerequisite courses. Rejects the insert if prerequisites are missing.
-- **`check_capacity`**: Fires `BEFORE INSERT` on `enrollments`. Counts current enrollments and aborts the insert if the section has reached its maximum capacity limit.
-- **`update_enrollment_grade`**: Fires `AFTER INSERT OR UPDATE` on `submissions`. Automatically recalculates the student's final weighted percentage, converts it to a letter grade (A+, B, F, etc.), and updates the `enrollments` record.
-- **`update_student_gpa`**: Fires `AFTER INSERT OR UPDATE` on `enrollments`. Recalculates the student's global cumulative GPA based on course credits and grade points, updating their `profiles` record.
+### ⚡ Automated Database Triggers (Active DBMS)
+We utilize PostgreSQL triggers to automatically enforce academic constraints and perform complex cascading calculations:
+- **`check_prerequisites` (`BEFORE INSERT`)**: Analyzes the student's transcript and rejects section enrollments if prerequisite courses aren't completed.
+- **`update_enrollment_grade` (`AFTER INSERT/UPDATE`)**: Recalculates the student's weighted percentage across all assignments, dynamically converting it to a standard Letter Grade (A, B, C, F), and updating the `enrollments` table without any backend API intervention.
+- **`update_student_gpa` (`AFTER UPDATE`)**: Automatically recalculates the global cumulative GPA based on course credits whenever a letter grade changes.
+
+### 🛡️ ACID-Compliant Transactions & Concurrency Control
+To prevent race conditions during high-traffic course registration periods, the system does not use simple REST API calls for enrollment. Instead, it utilizes a custom Stored Procedure (RPC) named `enroll_student`:
+- **Isolation (`SELECT ... FOR UPDATE`)**: The transaction applies a strict Row-Level Lock on the `sections` table. If 100 students click "Register" at the exact same millisecond, the lock forces PostgreSQL to queue the transactions sequentially.
+- **Atomicity & Consistency**: After locking the row, the function counts active enrollments and explicitly checks the `capacity` constraint. If the class is full, the transaction forcefully rolls back (`RAISE EXCEPTION`), completely preventing over-enrollment data anomalies.
+
+### 🔒 Secure Deletion (Stored Procedures)
+To bypass frontend security limitations without exposing the database Service Key, the system includes a `SECURITY DEFINER` Postgres function (`delete_user_by_admin`). When an Admin deletes a user, the function first strictly verifies the caller's role, and then executes a secure deletion on `auth.users`, which seamlessly triggers a cascade delete across their entire academic record.
 
 ---
 
@@ -111,6 +118,12 @@ This application is configured for seamless deployment on **Vercel**:
 
 ---
 
-## Quality Assurance (QA)
+## 🚀 Data Generation & Seeding
 
-The project includes an End-to-End QA script (`qa.mjs`) used during development to verify database constraints. It uses the Supabase JS client to simulate concurrent Admin, Teacher, and Student requests, guaranteeing that RLS, Capacity Checks, and Automated Grading Triggers perform flawlessly in production environments.
+For demonstration purposes (like a DBMS Final Lab Project Demo), the project includes a sophisticated synthetic data generation script.
+
+Run `node --env-file=.env.local web/scripts/seed.mjs` to automatically:
+1. Safely wipe all existing non-admin data.
+2. Interconnect and generate 40 Students and 10 Teachers.
+3. Automatically build 15 Courses and 20 Sections.
+4. Process thousands of simulated `submissions` to trigger the automated GPA calculation engine.
