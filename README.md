@@ -1,6 +1,6 @@
 # Scholaris - Advanced University Management System
 
-![Scholaris Logo](./public/logo.png)
+![Scholaris Logo](./web/public/logo.png)
 
 **Scholaris** is a modern, full-stack university management system built with **React, Vite, and Supabase**. It provides a secure, role-based platform for university administration, teacher grading, and student enrollments.
 
