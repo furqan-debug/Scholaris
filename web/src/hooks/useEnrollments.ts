@@ -5,7 +5,7 @@ export function useStudentEnrollments(studentId: string) {
   return useQuery({
     queryKey: ['enrollments', studentId],
     queryFn: async () => {
-      const { data, error } = await supabase.from('enrollments').select('*, course:courses(*)').eq('student_id', studentId).order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('enrollments').select('*, section:sections(*, course:courses(*))').eq('student_id', studentId).order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -25,15 +25,15 @@ export function useStudentGPA(studentId: string) {
   });
 }
 
-export function useCourseEnrollments(courseId: string) {
+export function useSectionEnrollments(sectionId: string) {
   return useQuery({
-    queryKey: ['enrollments', 'course', courseId],
+    queryKey: ['enrollments', 'section', sectionId],
     queryFn: async () => {
-      const { data, error } = await supabase.from('enrollments').select('*, student:profiles(id, first_name, last_name, roll_number)').eq('course_id', courseId).order('created_at');
+      const { data, error } = await supabase.from('enrollments').select('*, student:profiles(id, first_name, last_name, roll_number)').eq('section_id', sectionId).order('created_at');
       if (error) throw error;
       return data;
     },
-    enabled: !!courseId,
+    enabled: !!sectionId,
   });
 }
 
@@ -41,29 +41,29 @@ export function useEnrollStudent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (enrollment: { course_id: string; student_id: string; semester: string }) => {
+    mutationFn: async (enrollment: { section_id: string; student_id: string; }) => {
       const { data, error } = await supabase.from('enrollments').insert([enrollment]).select().single();
       if (error) throw error;
       return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['enrollments', variables.student_id] });
+      queryClient.invalidateQueries({ queryKey: ['recent_activity'] });
     },
   });
 }
 
-export function useAssignGrade() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: { id: string; grade: string; grade_point: number; status: string }) => {
-      const { data, error } = await supabase.from('enrollments').update({ grade: params.grade, grade_point: params.grade_point, status: params.status }).eq('id', params.id).select().single();
+export function useRecentActivity() {
+  return useQuery({
+    queryKey: ['recent_activity'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('enrollments')
+        .select('*, student:profiles(first_name, last_name), section:sections(course:courses(code))')
+        .order('created_at', { ascending: false })
+        .limit(5);
       if (error) throw error;
       return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['enrollments'] });
-      queryClient.invalidateQueries({ queryKey: ['gpa'] });
     },
   });
 }

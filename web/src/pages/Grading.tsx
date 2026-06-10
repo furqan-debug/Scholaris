@@ -1,92 +1,132 @@
 import { useState } from 'react';
-import { useCourses } from '../hooks/useCourses';
-import { useCourseEnrollments, useAssignGrade } from '../hooks/useEnrollments';
+import { useSections } from '../hooks/useCourses';
+import { useSectionEnrollments } from '../hooks/useEnrollments';
+import { useAssignments, useCreateAssignment, useSubmissions, useSubmitScore } from '../hooks/useAssignments';
+import Modal from '../components/ui/Modal';
 
-const GRADE_POINTS: Record<string, number> = {
-  'A+': 4.0, 'A': 3.8, 'A-': 3.6,
-  'B+': 3.3, 'B': 3.0,
-  'C+': 2.8, 'C': 2.2,
-  'D': 1.5,
-  'F': 0.0,
-  'None': 0.0
-};
+function SubmissionsTable({ assignmentId, sectionId }: { assignmentId: string, sectionId: string }) {
+  const { data: enrollments } = useSectionEnrollments(sectionId);
+  const { data: submissions } = useSubmissions(assignmentId);
+  const submitScore = useSubmitScore();
+
+  const getScore = (studentId: string) => {
+    return submissions?.find(s => s.student_id === studentId)?.score || '';
+  };
+
+  const handleScoreChange = async (studentId: string, score: string) => {
+    if (score === '') return;
+    try {
+      await submitScore.mutateAsync({ assignment_id: assignmentId, student_id: studentId, score: parseInt(score) });
+    } catch (err: any) {
+      alert('Failed to save score: ' + err.message);
+    }
+  };
+
+  return (
+    <div style={{ marginTop: '16px', overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
+            <th style={{ padding: '8px', fontWeight: 500 }}>Student</th>
+            <th style={{ padding: '8px', fontWeight: 500 }}>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {enrollments?.map(env => (
+            <tr key={env.student_id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+              <td style={{ padding: '8px' }}>{env.student?.first_name} {env.student?.last_name}</td>
+              <td style={{ padding: '8px' }}>
+                <input 
+                  type="number" 
+                  defaultValue={getScore(env.student_id)} 
+                  onBlur={(e) => handleScoreChange(env.student_id, e.target.value)}
+                  style={{ width: '80px', padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 export default function Grading() {
-  const [selectedCourse, setSelectedCourse] = useState('');
-  const { data: courses } = useCourses();
-  const { data: enrollments, isLoading } = useCourseEnrollments(selectedCourse);
-  const assignGrade = useAssignGrade();
+  const [selectedSection, setSelectedSection] = useState('');
+  const { data: sections } = useSections();
+  const { data: assignments } = useAssignments(selectedSection);
+  const createAssignment = useCreateAssignment();
 
-  const handleGradeChange = async (enrollmentId: string, grade: string) => {
-    const point = GRADE_POINTS[grade];
-    const status = grade === 'None' ? 'enrolled' : 'completed';
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({ title: '', max_score: 100, weight_percentage: 20 });
+
+  const handleAddAssignment = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      await assignGrade.mutateAsync({ id: enrollmentId, grade, grade_point: point, status });
+      await createAssignment.mutateAsync({ ...formData, section_id: selectedSection });
+      setIsModalOpen(false);
+      setFormData({ title: '', max_score: 100, weight_percentage: 20 });
     } catch (err: any) {
-      alert('Failed to save grade: ' + err.message);
+      alert('Failed to create assignment: ' + err.message);
     }
   };
 
   return (
     <div className="page">
       <div className="card" style={{ marginBottom: '24px' }}>
-        <h3>Select Course for Grading</h3>
-        <select value={selectedCourse} onChange={e => setSelectedCourse(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)', width: '100%', marginTop: '16px', maxWidth: '400px' }}>
-          <option value="">-- Choose a Course --</option>
-          {courses?.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
+        <h3>Select Section for Grading</h3>
+        <select value={selectedSection} onChange={e => setSelectedSection(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)', width: '100%', marginTop: '16px', maxWidth: '500px' }}>
+          <option value="">-- Choose a Section --</option>
+          {sections?.map(s => <option key={s.id} value={s.id}>{s.course?.code} - {s.course?.name} ({s.semester} | {s.schedule})</option>)}
         </select>
       </div>
 
-      {selectedCourse && (
+      {selectedSection && (
         <div className="card">
-          <h3>Enrolled Students</h3>
-          {isLoading ? <p>Loading...</p> : (
-            <div style={{ overflowX: 'auto', marginTop: '16px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-                    <th style={{ padding: '12px 8px', fontWeight: 500 }}>Roll No.</th>
-                    <th style={{ padding: '12px 8px', fontWeight: 500 }}>Name</th>
-                    <th style={{ padding: '12px 8px', fontWeight: 500 }}>Semester</th>
-                    <th style={{ padding: '12px 8px', fontWeight: 500 }}>Assign Grade</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {!enrollments || enrollments.length === 0 ? (
-                    <tr><td colSpan={4} style={{ padding: '24px 8px', textAlign: 'center' }}>No students enrolled.</td></tr>
-                  ) : (
-                    enrollments.map((env) => (
-                      <tr key={env.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '12px 8px' }}>{env.student?.roll_number}</td>
-                        <td style={{ padding: '12px 8px', fontWeight: 500 }}>{env.student?.first_name} {env.student?.last_name}</td>
-                        <td style={{ padding: '12px 8px' }}>{env.semester}</td>
-                        <td style={{ padding: '12px 8px' }}>
-                          <select 
-                            value={env.grade || 'None'} 
-                            onChange={(e) => handleGradeChange(env.id, e.target.value)}
-                            style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}
-                          >
-                            <option value="None">None</option>
-                            <option value="A+">A+ (4.0)</option>
-                            <option value="A">A (3.8)</option>
-                            <option value="A-">A- (3.6)</option>
-                            <option value="B+">B+ (3.3)</option>
-                            <option value="B">B (3.0)</option>
-                            <option value="C+">C+ (2.8)</option>
-                            <option value="C">C (2.2)</option>
-                            <option value="D">D (1.5)</option>
-                            <option value="F">F (0.0)</option>
-                          </select>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3>Assignments & Grading</h3>
+            <button className="btn-primary" style={{ width: 'auto' }} onClick={() => setIsModalOpen(true)}>Add Assignment</button>
+          </div>
+
+          <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            {!assignments || assignments.length === 0 ? (
+              <p style={{ color: 'var(--text-secondary)' }}>No assignments found. Create one to start grading.</p>
+            ) : (
+              assignments.map((assignment) => (
+                <div key={assignment.id} style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <h4 style={{ margin: 0 }}>{assignment.title}</h4>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Weight: {assignment.weight_percentage}%</span>
+                  </div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '4px' }}>Max Score: {assignment.max_score}</div>
+                  
+                  <SubmissionsTable assignmentId={assignment.id} sectionId={selectedSection} />
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Assignment">
+        <form onSubmit={handleAddAssignment}>
+          <div className="input-group">
+            <label>Title</label>
+            <input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="e.g. Midterm Exam" />
+          </div>
+          <div className="input-group">
+            <label>Max Score</label>
+            <input type="number" required value={formData.max_score} onChange={e => setFormData({...formData, max_score: parseInt(e.target.value)})} min="1" max="1000" />
+          </div>
+          <div className="input-group">
+            <label>Weight Percentage (%)</label>
+            <input type="number" required value={formData.weight_percentage} onChange={e => setFormData({...formData, weight_percentage: parseInt(e.target.value)})} min="1" max="100" />
+          </div>
+          <button type="submit" className="btn-primary" disabled={createAssignment.isPending}>
+            {createAssignment.isPending ? 'Saving...' : 'Save Assignment'}
+          </button>
+        </form>
+      </Modal>
     </div>
   );
 }

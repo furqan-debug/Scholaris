@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCourses } from '../hooks/useCourses';
+import { useSections } from '../hooks/useCourses';
 import { useStudentEnrollments, useStudentGPA, useEnrollStudent } from '../hooks/useEnrollments';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -7,26 +7,25 @@ export default function Transcript() {
   const { session } = useAuth();
   const studentId = session?.user.id || '';
   
-  const { data: courses, isLoading: loadingCourses } = useCourses();
+  const { data: sections, isLoading: loadingSections } = useSections();
   const { data: enrollments, isLoading: loadingEnrollments } = useStudentEnrollments(studentId);
   const { data: gpa } = useStudentGPA(studentId);
   const enrollStudent = useEnrollStudent();
 
-  const [selectedCourse, setSelectedCourse] = useState('');
-  const [semester, setSemester] = useState('Fall 2026');
+  const [selectedSection, setSelectedSection] = useState('');
 
   const handleEnroll = async () => {
-    if (!selectedCourse) return;
+    if (!selectedSection) return;
     try {
-      await enrollStudent.mutateAsync({ course_id: selectedCourse, student_id: studentId, semester });
+      await enrollStudent.mutateAsync({ section_id: selectedSection, student_id: studentId });
       alert('Successfully enrolled!');
-      setSelectedCourse('');
+      setSelectedSection('');
     } catch (err: any) {
       alert('Enrollment failed: ' + err.message);
     }
   };
 
-  if (loadingCourses || loadingEnrollments) return <div className="page">Loading...</div>;
+  if (loadingSections || loadingEnrollments) return <div className="page">Loading...</div>;
 
   return (
     <div className="page">
@@ -41,17 +40,13 @@ export default function Transcript() {
         <div className="card">
           <h3>Course Registration</h3>
           <div style={{ marginTop: '16px', display: 'flex', gap: '12px', flexDirection: 'column' }}>
-            <select value={selectedCourse} onChange={e => setSelectedCourse(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}>
-              <option value="">Select a course to enroll</option>
-              {courses?.filter(c => !enrollments?.some(e => e.course_id === c.id)).map(c => (
-                <option key={c.id} value={c.id}>{c.code} - {c.name} ({c.credits} Credits)</option>
+            <select value={selectedSection} onChange={e => setSelectedSection(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}>
+              <option value="">Select a Section to enroll</option>
+              {sections?.filter(s => !enrollments?.some(e => e.section_id === s.id)).map(s => (
+                <option key={s.id} value={s.id}>{s.course?.code} - {s.course?.name} ({s.semester} | {s.schedule})</option>
               ))}
             </select>
-            <select value={semester} onChange={e => setSemester(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}>
-              <option value="Fall 2026">Fall 2026</option>
-              <option value="Spring 2027">Spring 2027</option>
-            </select>
-            <button className="btn-primary" onClick={handleEnroll} disabled={!selectedCourse || enrollStudent.isPending}>
+            <button className="btn-primary" onClick={handleEnroll} disabled={!selectedSection || enrollStudent.isPending}>
               {enrollStudent.isPending ? 'Processing...' : 'Register'}
             </button>
           </div>
@@ -77,9 +72,9 @@ export default function Transcript() {
               ) : (
                 enrollments.map((env) => (
                   <tr key={env.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: '12px 8px' }}>{env.semester}</td>
-                    <td style={{ padding: '12px 8px', fontWeight: 500 }}>{env.course?.code} - {env.course?.name}</td>
-                    <td style={{ padding: '12px 8px' }}>{env.course?.credits}</td>
+                    <td style={{ padding: '12px 8px' }}>{env.section?.semester}</td>
+                    <td style={{ padding: '12px 8px', fontWeight: 500 }}>{env.section?.course?.code} - {env.section?.course?.name}</td>
+                    <td style={{ padding: '12px 8px' }}>{env.section?.course?.credits}</td>
                     <td style={{ padding: '12px 8px', textTransform: 'capitalize' }}>{env.status}</td>
                     <td style={{ padding: '12px 8px', fontWeight: 'bold' }}>{env.grade !== 'None' ? env.grade : '-'}</td>
                   </tr>
